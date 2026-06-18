@@ -1,8 +1,6 @@
 'use client'
 
 import { use, useState } from 'react'
-import { Navigation } from '@/components/navigation'
-import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Heart, Share2, Check } from 'lucide-react'
 
@@ -41,7 +39,6 @@ export default function ProductPage({ params }:
 
   return (
     <>
-      <Navigation />
       <main className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid md:grid-cols-2 gap-12">
@@ -185,7 +182,6 @@ export default function ProductPage({ params }:
           </div>
         </div>
       </main>
-      <Footer />
     </>
   )
 }

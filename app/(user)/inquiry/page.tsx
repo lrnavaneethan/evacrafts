@@ -1,7 +1,5 @@
 'use client'
 
-import { Navigation } from '@/components/navigation'
-import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Trash2, Plus, Minus } from 'lucide-react'
 import { useState } from 'react'
@@ -28,7 +26,6 @@ export default function InquiryPage() {
 
   return (
     <>
-      <Navigation />
       <main className="min-h-screen bg-background py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold text-secondary mb-8">Gift Inquiry Cart</h1>
@@ -135,7 +132,6 @@ export default function InquiryPage() {
           </div>
         </div>
       </main>
-      <Footer />
     </>
   )
 }
