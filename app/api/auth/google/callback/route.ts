@@ -29,11 +29,17 @@ export async function GET(req: Request) {
 
     const { sub: googleId, email, name, picture } = payload
 
-    const user = await prisma.user.upsert({
+    let user = await prisma.user.findUnique({
       where: { googleId },
-      update: { name: name ?? null, image: picture ?? null, email: email ?? null },
-      create: { googleId, email: email ?? null, name: name ?? null, image: picture ?? null },
     })
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: { googleId, email: email ?? null, name: name ?? null, image: picture ?? null },
+      })
+    } else {
+      console.log('[Google OAuth] Existing user logged in:', user.id)
+    }
 
     const cookie = await createUserCookie({
       id: user.id,
