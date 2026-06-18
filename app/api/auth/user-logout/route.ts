@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { clearAdminCookie } from '@/lib/auth'
+import { clearUserCookie } from '@/lib/auth'
 
 export async function POST() {
   return new NextResponse(null, {
     status: 200,
-    headers: { 'Set-Cookie': clearAdminCookie() },
+    headers: { 'Set-Cookie': clearUserCookie() },
   })
 }

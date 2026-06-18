@@ -1,4 +1,3 @@
-import { Navigation } from '@/components/navigation'
 import { HeroSection } from '@/components/hero-section'
 import { AboutSection } from '@/components/about-section'
 import { CategoriesSection } from '@/components/categories-section'
@@ -11,10 +10,11 @@ import { FAQSection } from '@/components/faq-section'
 import { ContactSection } from '@/components/contact-section'
 import { Footer } from '@/components/footer'
 
+export const dynamic = 'force-dynamic'
+
 export default function Home() {
   return (
     <main className="overflow-hidden">
-      <Navigation />
       <HeroSection />
       <AboutSection />
       <CategoriesSection />

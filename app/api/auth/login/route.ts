@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { createSessionCookie } from '@/lib/auth'
+import { createAdminCookie } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json()
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
   }
 
-  const cookie = await createSessionCookie()
+  const cookie = await createAdminCookie()
   return new NextResponse(null, {
     status: 200,
     headers: { 'Set-Cookie': cookie },

@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
-    router.push('/admin/login')
+    router.push('/')
     router.refresh()
   }
 
@@ -32,10 +32,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </button>
     )
   }
-
-  const isLogin = pathname === '/admin/login'
-
-  if (isLogin) return <>{children}</>
 
   return (
     <div className="flex min-h-screen bg-muted/30">
