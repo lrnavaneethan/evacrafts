@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadToCloudinary } from '@/lib/cloudinary'
 
+export const maxDuration = 60
+
 export async function GET() {
   const products = await prisma.product.findMany({
     include: { category: true, images: { orderBy: { sortOrder: 'asc' } } },
@@ -23,9 +25,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Name and category are required' }, { status: 400 })
   }
 
-  const uploadedImages = await Promise.all(
-    files.filter((f) => f.size > 0).map((f, i) => uploadToCloudinary(f).then((r) => ({ ...r, sortOrder: i })))
-  )
+  const validFiles = files.filter((f) => f.size > 0)
+  const uploadedImages: { url: string; publicId: string; sortOrder: number }[] = []
+  for (let i = 0; i < validFiles.length; i++) {
+    const result = await uploadToCloudinary(validFiles[i])
+    uploadedImages.push({ ...result, sortOrder: i })
+  }
 
   const product = await prisma.product.create({
     data: {
