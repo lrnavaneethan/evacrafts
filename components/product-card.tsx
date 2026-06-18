@@ -49,11 +49,6 @@ export function ProductCard({
               -{discount}%
             </span>
           )}
-          {!inStock && (
-            <span className="inline-flex w-fit rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-              Out of Stock
-            </span>
-          )}
         </div>
 
         {/* Favorite Button */}
@@ -71,15 +66,6 @@ export function ProductCard({
           />
         </button>
 
-        {/* Quick Add Button */}
-        <button
-          disabled={!inStock}
-          className="absolute bottom-3 left-1/2 -translate-x-1/2 -translate-y-12 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all duration-300 group-hover:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          aria-label="Add to cart"
-        >
-          <ShoppingCart className="h-4 w-4" />
-          Add to Cart
-        </button>
       </div>
 
       {/* Content Container */}
@@ -112,15 +98,27 @@ export function ProductCard({
         </div>
 
         {/* Price Section */}
-        <div className="mt-auto flex items-baseline gap-2 pt-3">
-          <span className="text-xl font-bold text-foreground">
-            ${price.toFixed(2)}
-          </span>
-          {originalPrice && originalPrice > price && (
-            <span className="text-sm text-muted-foreground line-through">
-              ${originalPrice.toFixed(2)}
+        <div className="mt-auto flex flex-col gap-3 pt-3">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl font-bold text-foreground">
+              ${price.toFixed(2)}
             </span>
-          )}
+            {originalPrice && originalPrice > price && (
+              <span className="text-sm text-muted-foreground line-through">
+                ${originalPrice.toFixed(2)}
+              </span>
+            )}
+          </div>
+
+          <Button
+            variant="outline"
+            className="w-full"
+            disabled={!inStock}
+            aria-label="Add to cart"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Add to Cart
+          </Button>
         </div>
       </div>
     </div>

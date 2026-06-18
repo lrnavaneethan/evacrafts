@@ -5,7 +5,7 @@ export async function uploadToCloudinary(file: File): Promise<{ url: string; pub
   const dataURI = `data:${file.type};base64,${base64}`
 
   const timestamp = Math.floor(Date.now() / 1000)
-  const folder = 'eva-crafts/products'
+  const folder = 'evacrafts/products'
 
   const str = `folder=${folder}&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET}`
   const encoder = new TextEncoder()

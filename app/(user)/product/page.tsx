@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { ProductCard } from '@/components/product-card'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,116 +12,18 @@ import {
   Sliders,
 } from 'lucide-react'
 
-// Sample product data
-const PRODUCTS = [
-  {
-    id: '1',
-    name: 'Premium Wireless Headphones',
-    price: 129.99,
-    originalPrice: 199.99,
-    image:
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop',
-    category: 'Audio',
-    rating: 4.5,
-    reviews: 328,
-    inStock: true,
-  },
-  {
-    id: '2',
-    name: 'Smart Watch Pro',
-    price: 249.99,
-    originalPrice: 349.99,
-    image:
-      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&h=500&fit=crop',
-    category: 'Wearables',
-    rating: 4.8,
-    reviews: 542,
-    inStock: true,
-  },
-  {
-    id: '3',
-    name: 'Ultra HD 4K Webcam',
-    price: 179.99,
-    originalPrice: 249.99,
-    image:
-      'https://images.unsplash.com/photo-1611532736579-6b16e2b50449?w=500&h=500&fit=crop',
-    category: 'Electronics',
-    rating: 4.3,
-    reviews: 189,
-    inStock: true,
-  },
-  {
-    id: '4',
-    name: 'Mechanical Keyboard RGB',
-    price: 89.99,
-    originalPrice: 139.99,
-    image:
-      'https://images.unsplash.com/photo-1587829191301-4b13aaf64bda?w=500&h=500&fit=crop',
-    category: 'Peripherals',
-    rating: 4.6,
-    reviews: 412,
-    inStock: true,
-  },
-  {
-    id: '5',
-    name: 'Portable SSD 1TB',
-    price: 94.99,
-    originalPrice: 129.99,
-    image:
-      'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=500&h=500&fit=crop',
-    category: 'Storage',
-    rating: 4.7,
-    reviews: 678,
-    inStock: false,
-  },
-  {
-    id: '6',
-    name: 'USB-C Fast Charger',
-    price: 34.99,
-    originalPrice: 49.99,
-    image:
-      'https://images.unsplash.com/photo-1609034227505-5876f6aa4e90?w=500&h=500&fit=crop',
-    category: 'Accessories',
-    rating: 4.4,
-    reviews: 234,
-    inStock: true,
-  },
-  {
-    id: '7',
-    name: 'HD Monitor 27 inch',
-    price: 199.99,
-    originalPrice: 299.99,
-    image:
-      'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=500&h=500&fit=crop',
-    category: 'Displays',
-    rating: 4.5,
-    reviews: 156,
-    inStock: true,
-  },
-  {
-    id: '8',
-    name: 'Wireless Mouse',
-    price: 29.99,
-    originalPrice: 44.99,
-    image:
-      'https://images.unsplash.com/photo-1527814050087-3793815479db?w=500&h=500&fit=crop',
-    category: 'Peripherals',
-    rating: 4.2,
-    reviews: 445,
-    inStock: true,
-  },
-]
+type Product = {
+  id: string
+  name: string
+  price: number
+  image: string
+  category: string
+  isActive: boolean
+  rating: number
+  reviews: number
+}
 
-const CATEGORIES = [
-  'All Products',
-  'Audio',
-  'Electronics',
-  'Wearables',
-  'Peripherals',
-  'Storage',
-  'Accessories',
-  'Displays',
-]
+const initialCategories = ['All Products']
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest' },
@@ -131,22 +33,60 @@ const SORT_OPTIONS = [
 ]
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<string[]>(initialCategories)
   const [selectedCategory, setSelectedCategory] = useState('All Products')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   // Filter and sort products
-  const filteredProducts = useMemo(() => {
-    let filtered = PRODUCTS
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true)
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch('/api/admin/products'),
+          fetch('/api/admin/categories'),
+        ])
 
-    // Filter by category
+        const productsData = await productsRes.json()
+        const categoriesData = await categoriesRes.json()
+
+        setProducts(
+          productsData
+            .filter((product: any) => product.isActive)
+            .map((product: any) => ({
+              id: product.id,
+              name: product.name,
+              price: Number(product.price ?? 0),
+              image: product.images?.[0]?.imageUrl ?? '/placeholder.png',
+              category: product.category?.name ?? 'Uncategorized',
+              isActive: product.isActive,
+              rating: product.rating ?? 4,
+              reviews: product.reviews ?? 0,
+            }))
+        )
+        setCategories(['All Products', ...categoriesData.map((category: any) => category.name)])
+      } catch (error) {
+        console.error('Failed to load products or categories', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
+
+  const filteredProducts = useMemo(() => {
+    let filtered = products
+
     if (selectedCategory !== 'All Products') {
       filtered = filtered.filter((p) => p.category === selectedCategory)
     }
 
-    // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(
         (p) =>
@@ -155,23 +95,19 @@ export default function ProductsPage() {
       )
     }
 
-    // Sort
     switch (sortBy) {
       case 'price-low':
-        filtered.sort((a, b) => a.price - b.price)
+        filtered = [...filtered].sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
         break
       case 'price-high':
-        filtered.sort((a, b) => b.price - a.price)
+        filtered = [...filtered].sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
         break
-      case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating)
-        break
-      default: // newest
+      default:
         break
     }
 
     return filtered
-  }, [selectedCategory, searchQuery, sortBy])
+  }, [products, selectedCategory, searchQuery, sortBy])
 
   return (
     <main className="min-h-screen bg-background">
@@ -239,7 +175,7 @@ export default function ProductsPage() {
                   Categories
                 </h3>
                 <div className="space-y-2">
-                  {CATEGORIES.map((category) => (
+                  {categories.map((category) => (
                     <button
                       key={category}
                       onClick={() => {
@@ -326,7 +262,11 @@ export default function ProductsPage() {
             </div>
 
             {/* Products Grid/List */}
-            {filteredProducts.length > 0 ? (
+            {loading ? (
+              <div className="flex items-center justify-center py-24">
+                <p className="text-muted-foreground">Loading products...</p>
+              </div>
+            ) : filteredProducts.length > 0 ? (
               <div
                 className={
                   viewMode === 'grid'
