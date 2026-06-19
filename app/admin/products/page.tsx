@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2, X, ImagePlus, Loader2 } from 'lucide-react'
+import { Plus, Trash2, X, ImagePlus, Loader2, Edit } from 'lucide-react'
 
 type Category = { id: string; name: string }
 type ProductImage = { id: string; imageUrl: string; sortOrder: number }
@@ -13,6 +13,7 @@ type Product = {
   price: string | null
   isActive: boolean
   category: Category
+  categoryId: string
   images: ProductImage[]
 }
 
@@ -24,6 +25,8 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(emptyForm)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [existingImages, setExistingImages] = useState<ProductImage[]>([])
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
@@ -43,6 +46,24 @@ export default function AdminProductsPage() {
 
   function openAdd() {
     setForm(emptyForm)
+    setEditingProduct(null)
+    setExistingImages([])
+    setImageFiles([])
+    setImagePreviews([])
+    setError('')
+    setShowForm(true)
+  }
+
+  function openEdit(product: Product) {
+    setEditingProduct(product)
+    setForm({
+      name: product.name,
+      description: product.description ?? '',
+      price: product.price ?? '',
+      categoryId: product.categoryId,
+      isActive: product.isActive,
+    })
+    setExistingImages(product.images)
     setImageFiles([])
     setImagePreviews([])
     setError('')
@@ -51,9 +72,11 @@ export default function AdminProductsPage() {
 
   function closeForm() {
     setShowForm(false)
+    setEditingProduct(null)
     imagePreviews.forEach((p) => URL.revokeObjectURL(p))
     setImagePreviews([])
     setImageFiles([])
+    setExistingImages([])
   }
 
   function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -63,6 +86,10 @@ export default function AdminProductsPage() {
     e.target.value = ''
   }
 
+  function removeExistingImage(id: string) {
+    setExistingImages((prev) => prev.filter((image) => image.id !== id))
+  }
+
   function removePreview(index: number) {
     URL.revokeObjectURL(imagePreviews[index])
     setImageFiles((prev) => prev.filter((_, i) => i !== index))
@@ -70,21 +97,29 @@ export default function AdminProductsPage() {
   }
 
   async function handleSave() {
-    if (!form.name.trim() || !form.categoryId) { setError('Name and category are required'); return }
+    if (!form.name?.trim() || !form.categoryId) { setError('Name and category are required'); return }
     setSaving(true); setError('')
     try {
       const fd = new FormData()
       fd.append('name', form.name)
-      fd.append('description', form.description)
-      fd.append('price', form.price)
+      fd.append('description', form.description || '')
+      fd.append('price', form.price || '')
       fd.append('categoryId', form.categoryId)
       fd.append('isActive', String(form.isActive))
+      existingImages.forEach((img) => fd.append('existingImageIds', img.id))
       imageFiles.forEach((f) => fd.append('images', f))
 
-      const res = await fetch('/api/admin/products', { method: 'POST', body: fd })
+      const url = editingProduct ? `/api/admin/products/${editingProduct.id}` : '/api/admin/products'
+      const method = editingProduct ? 'PATCH' : 'POST'
+      const res = await fetch(url, { method, body: fd })
       if (!res.ok) throw new Error(await res.text())
-      const created: Product = await res.json()
-      setProducts((prev) => [created, ...prev])
+      const product: Product = await res.json()
+
+      setProducts((prev) =>
+        editingProduct
+          ? prev.map((item) => (item.id === product.id ? product : item))
+          : [product, ...prev]
+      )
       closeForm()
     } catch (e: any) {
       setError(e.message || 'Failed to save')
@@ -150,9 +185,14 @@ export default function AdminProductsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => handleDelete(p.id)} className="p-1.5 hover:bg-muted rounded transition-colors">
-                      <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                    </button>
+                    <div className="flex justify-end gap-2">
+                      <button onClick={() => openEdit(p)} className="p-1.5 hover:bg-muted rounded transition-colors" title="Edit product">
+                        <Edit className="w-3.5 h-3.5 text-primary" />
+                      </button>
+                      <button onClick={() => handleDelete(p.id)} className="p-1.5 hover:bg-muted rounded transition-colors" title="Delete product">
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -165,7 +205,7 @@ export default function AdminProductsPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl border border-border w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-white">
-              <h2 className="font-semibold text-secondary">Add Product</h2>
+              <h2 className="font-semibold text-secondary">{editingProduct ? 'Edit Product' : 'Add Product'}</h2>
               <button onClick={closeForm} className="p-1 hover:bg-muted rounded"><X className="w-4 h-4" /></button>
             </div>
 
@@ -205,11 +245,21 @@ export default function AdminProductsPage() {
 
               <div>
                 <label className="block text-xs font-medium text-secondary mb-1.5">Images</label>
-                <div className="flex flex-wrap gap-2">
-                  {imagePreviews.map((src, i) => (
-                    <div key={i} className="relative w-20 h-20">
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {existingImages.map((image) => (
+                    <div key={image.id} className="relative w-20 h-20">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={src} alt="" className="w-20 h-20 rounded-lg object-cover border border-border" />
+                      <img src={image.imageUrl} alt="Existing image" className="w-20 h-20 rounded-lg object-cover border border-border" />
+                      <button onClick={() => removeExistingImage(image.id)}
+                        className="absolute -top-1.5 -right-1.5 bg-destructive text-white rounded-full w-4 h-4 flex items-center justify-center">
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  ))}
+                  {imagePreviews.map((src, i) => (
+                    <div key={`new-${i}`} className="relative w-20 h-20">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt="New preview" className="w-20 h-20 rounded-lg object-cover border border-border" />
                       <button onClick={() => removePreview(i)}
                         className="absolute -top-1.5 -right-1.5 bg-destructive text-white rounded-full w-4 h-4 flex items-center justify-center">
                         <X className="w-2.5 h-2.5" />
@@ -233,7 +283,7 @@ export default function AdminProductsPage() {
 
             <div className="flex gap-3 px-6 py-4 border-t border-border sticky bottom-0 bg-white">
               <Button onClick={handleSave} disabled={saving} className="flex-1 bg-primary hover:bg-primary/90 text-white">
-                {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : 'Add Product'}
+                {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : editingProduct ? 'Update Product' : 'Add Product'}
               </Button>
               <Button variant="outline" onClick={closeForm} disabled={saving} className="flex-1">Cancel</Button>
             </div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { uploadToCloudinary } from '@/lib/cloudinary'
+import { uploadToCloudinary, deleteFromCloudinary } from '@/lib/cloudinary'
 
 export const maxDuration = 60
 
@@ -40,8 +40,9 @@ export async function POST(req: NextRequest) {
       categoryId,
       isActive,
       images: {
-        create: uploadedImages.map(({ url, sortOrder }) => ({
+        create: uploadedImages.map(({ url, publicId, sortOrder }) => ({
           imageUrl: url,
+          publicId,
           sortOrder,
         })),
       },

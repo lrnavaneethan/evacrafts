@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Menu, X, ShoppingCart, LogOut, UserCircle, ChevronDown, Heart, PackageSearch } from 'lucide-react'
 import type { SessionUser } from '@/lib/auth'
+import Image from 'next/image'
 
 export function NavigationClient({ user }: { user: SessionUser | null }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -31,7 +32,7 @@ export function NavigationClient({ user }: { user: SessionUser | null }) {
   const navLinks = [
     { href: '#about', label: 'About' },
     { href: '#categories', label: 'Categories' },
-    { href: '#products', label: 'Products' },
+    { href: '/product', label: 'Products' },
     { href: '#custom', label: 'Custom Orders' },
     { href: '#contact', label: 'Contact' },
   ]
@@ -44,7 +45,12 @@ export function NavigationClient({ user }: { user: SessionUser | null }) {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <span className="text-white font-bold text-sm">EC</span>
+              <Image
+              src="/2.png"
+              alt="Eva Crafts Logo"
+              width={32}
+              height={32}
+              />
             </div>
             <span className="text-lg font-semibold text-secondary hidden sm:inline">Eva Crafts</span>
           </Link>
