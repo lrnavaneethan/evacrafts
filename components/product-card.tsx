@@ -28,9 +28,47 @@ export function ProductCard({
   inStock,
 }: ProductCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
+  const [isSavingFavorite, setIsSavingFavorite] = useState(false)
   const discount = originalPrice
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0
+
+  const handleToggleFavorite = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (isSavingFavorite || isFavorite) return
+
+    setIsSavingFavorite(true)
+    try {
+      const res = await fetch('/api/wishlist/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: id }),
+      })
+
+      if (res.status === 401) {
+        window.location.href = '/api/auth/google/login'
+        return
+      }
+
+      if (!res.ok) {
+        console.error('Failed to add product to wishlist', await res.text())
+        return
+      }
+
+      setIsFavorite(true)
+    } catch (error) {
+      console.error('Error adding product to wishlist', error)
+    } finally {
+      setIsSavingFavorite(false)
+    }
+  }
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // TODO: call your add-to-cart logic here
+  }
 
   return (
     <Link href={`/product/${id}`}>
@@ -58,7 +96,7 @@ export function ProductCard({
 
         {/* Favorite Button */}
         <button
-          onClick={() => setIsFavorite(!isFavorite)}
+          onClick={handleToggleFavorite}
           className="absolute top-3 right-3 rounded-full bg-white/90 p-2 transition-all duration-200 hover:bg-white hover:scale-110 dark:bg-card/90"
           aria-label="Add to favorites"
           >
@@ -120,6 +158,7 @@ export function ProductCard({
             className="w-full"
             disabled={!inStock}
             aria-label="Add to cart"
+            onClick={handleAddToCart}
             >
             <ShoppingCart className="h-4 w-4" />
             Add to Cart
