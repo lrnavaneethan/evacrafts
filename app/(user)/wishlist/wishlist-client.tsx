@@ -38,7 +38,7 @@ export function WishlistClient({ initialItems }: { initialItems: WishlistItem[] 
       <div className="text-center py-24 space-y-4">
         <Heart className="w-12 h-12 text-muted-foreground mx-auto" />
         <p className="text-muted-foreground">Your wishlist is empty.</p>
-        <Link href="/" className="inline-block px-4 py-2 bg-primary text-white rounded-lg text-sm">
+        <Link href="/product" className="inline-block px-4 py-2 bg-primary text-white rounded-lg text-sm">
           Browse Products
         </Link>
       </div>

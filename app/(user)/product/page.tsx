@@ -52,6 +52,11 @@ export default function ProductsPage() {
           fetch('/api/admin/categories'),
         ])
 
+        if (!productsRes.ok || !categoriesRes.ok) {
+          console.error('API error:', productsRes.status, categoriesRes.status)
+          return
+        }
+
         const productsData = await productsRes.json()
         const categoriesData = await categoriesRes.json()
 

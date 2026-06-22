@@ -1,5 +1,5 @@
 'use client'
-
+import Link from 'next/link'
 import { Heart, ShoppingCart } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,7 @@ export function ProductCard({
     : 0
 
   return (
+    <Link href={`/product/${id}`}>
     <div className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/50">
       {/* Image Container */}
       <div className="relative overflow-hidden bg-muted">
@@ -60,14 +61,14 @@ export function ProductCard({
           onClick={() => setIsFavorite(!isFavorite)}
           className="absolute top-3 right-3 rounded-full bg-white/90 p-2 transition-all duration-200 hover:bg-white hover:scale-110 dark:bg-card/90"
           aria-label="Add to favorites"
-        >
+          >
           <Heart
             className={`h-5 w-5 transition-all duration-200 ${
               isFavorite
-                ? 'fill-destructive stroke-destructive'
-                : 'stroke-foreground'
+              ? 'fill-destructive stroke-destructive'
+              : 'stroke-foreground'
             }`}
-          />
+            />
         </button>
 
       </div>
@@ -87,12 +88,12 @@ export function ProductCard({
           <div className="flex gap-0.5">
             {Array.from({ length: 5 }).map((_, i) => (
               <span
-                key={i}
-                className={`text-sm ${
-                  i < Math.floor(rating)
-                    ? 'text-yellow-400'
-                    : 'text-muted-foreground'
-                }`}
+              key={i}
+              className={`text-sm ${
+                i < Math.floor(rating)
+                ? 'text-yellow-400'
+                : 'text-muted-foreground'
+              }`}
               >
                 ★
               </span>
@@ -119,12 +120,13 @@ export function ProductCard({
             className="w-full"
             disabled={!inStock}
             aria-label="Add to cart"
-          >
+            >
             <ShoppingCart className="h-4 w-4" />
             Add to Cart
           </Button>
         </div>
       </div>
     </div>
+            </Link>
   )
 }

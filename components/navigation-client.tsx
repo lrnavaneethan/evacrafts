@@ -65,11 +65,16 @@ export function NavigationClient({ user }: { user: SessionUser | null }) {
           </div>
 
           {/* Right side */}
+          
           <div className="flex items-center gap-2">
-            <Link href="/inquiry" className="p-2 hover:bg-muted rounded-lg transition-colors">
+            <Link href="/cart" className="p-2 hover:bg-muted rounded-lg transition-colors">
               <ShoppingCart className="w-5 h-5 text-secondary" />
             </Link>
-
+            <div className="flex items-center gap-2">
+                        <Link href="/wishlist" className="p-2 hover:bg-muted rounded-lg transition-colors">
+                        <Heart className="w-5 h-5 text-secondary"/>
+                        </Link>
+                      </div>
             {user ? (
               <div className="relative" ref={dropdownRef}>
                 {/* Avatar button */}

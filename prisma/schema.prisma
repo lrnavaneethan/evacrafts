@@ -48,6 +48,7 @@ model Product {
   price Decimal? @db.Decimal(10, 2)
 
   isActive Boolean @default(true)
+  
 
   images        ProductImage[]
   wishlistItems Wishlist[]

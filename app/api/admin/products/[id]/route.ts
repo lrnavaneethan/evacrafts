@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadToCloudinary, deleteFromCloudinary } from '@/lib/cloudinary'
 
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      category: true,
+      images: { orderBy: { sortOrder: 'asc' } },
+    },
+  })
+
+  if (!product) {
+    return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+  }
+
+  return NextResponse.json(product)
+}
+
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
@@ -47,7 +65,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const removedImages = product.images.filter((img) => !existingImageIds.includes(img.id))
-  await Promise.all(
+  await Promise.allSettled(
     removedImages
       .filter((img) => img.publicId)
       .map((img) => deleteFromCloudinary(img.publicId!))
@@ -55,9 +73,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const uploadedImages: { url: string; publicId: string; sortOrder: number }[] = []
   const validFiles = files.filter((f) => f.size > 0)
-  for (let i = 0; i < validFiles.length; i++) {
-    const result = await uploadToCloudinary(validFiles[i])
-    uploadedImages.push({ ...result, sortOrder: product.images.length + i })
+  try {
+    for (let i = 0; i < validFiles.length; i++) {
+      const result = await uploadToCloudinary(validFiles[i])
+      uploadedImages.push({ ...result, sortOrder: product.images.length + i })
+    }
+  } catch {
+    return NextResponse.json({ error: 'Image upload failed. Check your network or Cloudinary config.' }, { status: 502 })
   }
 
   const updatedProduct = await prisma.product.update({

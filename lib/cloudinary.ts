@@ -28,6 +28,7 @@ export async function uploadToCloudinary(file: File): Promise<{ url: string; pub
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, {
     method: 'POST',
     body: form,
+    signal: AbortSignal.timeout(15000),
   })
 
   if (!res.ok) {
@@ -52,5 +53,6 @@ export async function deleteFromCloudinary(publicId: string): Promise<void> {
   await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/destroy`, {
     method: 'POST',
     body: form,
-  })
+    signal: AbortSignal.timeout(10000),
+  }).catch(() => {/* non-fatal: old image cleanup failed */})
 }

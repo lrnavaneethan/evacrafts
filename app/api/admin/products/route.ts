@@ -5,11 +5,16 @@ import { uploadToCloudinary, deleteFromCloudinary } from '@/lib/cloudinary'
 export const maxDuration = 60
 
 export async function GET() {
-  const products = await prisma.product.findMany({
-    include: { category: true, images: { orderBy: { sortOrder: 'asc' } } },
-    orderBy: { createdAt: 'desc' },
-  })
-  return NextResponse.json(products)
+  try {
+    const products = await prisma.product.findMany({
+      include: { category: true, images: { orderBy: { sortOrder: 'asc' } } },
+      orderBy: { createdAt: 'desc' },
+    })
+    return NextResponse.json(products)
+  } catch (error) {
+    console.error('Products fetch error:', error)
+    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -27,9 +32,13 @@ export async function POST(req: NextRequest) {
 
   const validFiles = files.filter((f) => f.size > 0)
   const uploadedImages: { url: string; publicId: string; sortOrder: number }[] = []
-  for (let i = 0; i < validFiles.length; i++) {
-    const result = await uploadToCloudinary(validFiles[i])
-    uploadedImages.push({ ...result, sortOrder: i })
+  try {
+    for (let i = 0; i < validFiles.length; i++) {
+      const result = await uploadToCloudinary(validFiles[i])
+      uploadedImages.push({ ...result, sortOrder: i })
+    }
+  } catch {
+    return NextResponse.json({ error: 'Image upload failed. Check your network or Cloudinary config.' }, { status: 502 })
   }
 
   const product = await prisma.product.create({
